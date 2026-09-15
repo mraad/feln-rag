@@ -1,14 +1,87 @@
 # feln-rag
 
-Generate FELN spatial queries from natural language using retrieved NorthSea examples.
-SentenceTransformer embeds the examples, NumPy selects the closest matches, and an LLM
-returns JSON validated and scored by `feln`.
+Ask a question such as “Show oil wells within five kilometers of gas pipelines.” To turn
+that into a useful spatial query, a model needs to know the layers, how their fields are
+encoded, and how to express the relationship between them. A few relevant examples can
+show it how those pieces fit together.
+
+That is the idea behind this project: find NorthSea questions similar to yours, give the
+model their FELN answers as worked examples, and then ask it to translate your question.
+FELN is the structured JSON output: `layers` identifies the features, `where` supplies their
+SQL filters, and `relations` describes the spatial relationships.
+
+Two companion projects supply the foundation:
+
+- [layers-json](https://github.com/mraad/layers-json) supplies the catalog models used to
+  describe layer names, fields, coded values, and hints in the system prompt.
+- [feln](https://github.com/mraad/feln) supplies the FELN models, output validation, and
+  comparison tools used to score generated queries against known answers.
+
+## From a question to FELN
+
+### 1. Give each example a place in the vector store
+
+Each NorthSea example pairs a natural-language question (`text`) with its FELN answer
+(`meta`). An embedding model turns the **question text** into a vector: a list of numbers
+that represents its meaning. We store those vectors as rows in a NumPy array, keeping each
+row linked to its original text and FELN. That array is the vector store.
+
+The vectors are normalized to unit length and cached on disk, so unchanged examples do not
+need to be embedded again each time Studio starts.
+
+### 2. Find questions that sound like yours
+
+Your new question goes through the same embedding model. We compare its vector with every
+row in the array and select the five closest matches. Similarity is measured with **cosine
+similarity**; because the vectors are normalized, a NumPy dot product gives that score.
+
+Retrieval returns the original question and associated FELN for each match. A high score
+means the example is similar enough to be useful context; it does not establish that its
+answer is also the answer to your question.
+
+### 3. Show the model a few worked examples, then ask your question
+
+The retrieved pairs become alternating user and assistant messages. Each example question
+is a **user** message, and its known FELN answer is the following **assistant** message.
+The system instructions and layer catalog come first. Your actual question comes last:
+
+```text
+system:    Translation instructions and the NorthSea layer catalog
+user:      First retrieved example question
+assistant: That example's FELN JSON
+user:      Second retrieved example question
+assistant: That example's FELN JSON
+           …remaining retrieved pairs, in ranked order…
+user:      Your question
+```
+
+This is few-shot prompting: the model sees examples of the translation we want before
+answering the final question. It then generates a new FELN JSON object, which `feln` validates.
+The catalog provides the meaning of the data; the examples demonstrate how to use it.
+Together they help the model produce the intended query, although schema validation alone
+cannot guarantee that it understood the question correctly.
+
+```mermaid
+flowchart LR
+    A[NorthSea example texts] --> B[Embedding model]
+    B --> C[NumPy vector store]
+    Q[Your question] --> E[Same embedding model]
+    C --> R[Cosine similarity: top five]
+    E --> R
+    R --> P[Example text and FELN as user/assistant pairs]
+    S[System instructions and layer catalog] --> M[Assemble messages]
+    P --> M
+    Q -->|Final user message| M
+    M --> L[LLM]
+    L --> F[FELN JSON and validation]
+```
 
 ## Setup
 
-Requires Python 3.13, `uv`, and sibling checkouts named `../feln`, `../layers-json`, and
-`../VectorlessGAIT`. These provide FELN validation/scoring, catalog models, and the optional
-vectorless retriever. This project does not depend on `gen-ai-toolkit`.
+Requires Python 3.13, `uv`, and sibling checkouts of [feln](https://github.com/mraad/feln)
+at `../feln` and [layers-json](https://github.com/mraad/layers-json) at `../layers-json`.
+The current dependency configuration also requires `../VectorlessGAIT` for the optional
+vectorless retrieval mode. Studio uses the NumPy embedding workflow described above.
 
 ```bash
 uv sync
@@ -39,8 +112,16 @@ included or needed for retrieval and generation. No local filesystem paths are r
 
 ## FELN Studio
 
-A local single-page app with a query editor, editable system prompt, five ranked examples,
-and a copyable FELN result. The UI uses plain HTML, CSS, and JavaScript, served by Python's
+Studio makes that flow visible. Write your question on the left, inspect the five retrieved
+examples below, and see the generated FELN on the right. Expanding an example shows the exact
+JSON that will become an assistant message. The editable system prompt shows the instructions
+and catalog that precede those pairs.
+
+**Find examples only** lets you inspect retrieval before asking the LLM to generate anything.
+**Generate FELN** sends those displayed examples, in order, followed by your question. You can
+then copy the result or revise the question and try again.
+
+The local single-page app uses plain HTML, CSS, and JavaScript, served by Python's
 standard-library HTTP server; no frontend build step is required.
 
 ![FELN Studio workspace](docs/screenshots/feln-studio-workspace.jpg)
