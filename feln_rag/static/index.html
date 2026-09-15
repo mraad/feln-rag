@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <title>FELN Studio · Query playground</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="FELN Studio home"><span class="brandmark" aria-hidden="true">f.</span> FELN <span class="brand-light">Studio</span></a>
+    <span class="workspace">NATURAL LANGUAGE → GEOSPATIAL LOGIC</span>
+    <span class="local"><span class="dot"></span> Local workspace</span>
+  </header>
+  <main>
+    <section class="intro">
+      <h1>FELN Studio</h1>
+      <p class="intro-copy">Write a spatial query, inspect five matching examples, and generate FELN.</p>
+    </section>
+    <div class="workbench">
+      <section class="composer panel" aria-labelledby="compose-title">
+        <div class="panel-heading"><div><h2 id="compose-title">Compose your query</h2></div><span class="small-tag">INPUT</span></div>
+        <form id="query-form" novalidate>
+          <label class="field-label" for="query">What would you like to find?</label>
+          <textarea id="query" name="query" maxlength="10000" required rows="5" spellcheck="false">Show all wells with depth > 350 meters and are within 4 miles of an in-service pipeline</textarea>
+          <div class="field-meta"><span>Use layer names, filters, and spatial relationships.</span><span id="character-count">0 characters</span></div>
+          <details class="prompt-details">
+            <summary><span><span class="sliders" aria-hidden="true">≡</span> System prompt <span class="muted">& catalog</span></span><span class="edit-label">EDIT ↗</span></summary>
+            <div class="prompt-body"><p>This instruction and catalog are sent with your query and the five examples below.</p><label class="sr-only" for="prompt">System prompt and catalog</label><textarea id="prompt" maxlength="100000" rows="12" spellcheck="false" required></textarea><button id="reset-prompt" class="text-button" type="button">Restore default prompt</button></div>
+          </details>
+          <div class="actions"><button id="generate" class="primary" type="submit" disabled>Generate FELN <span aria-hidden="true">↗</span></button><button id="retrieve" class="secondary" type="button" disabled>Find examples only</button></div>
+          <p class="action-note">Generation sends this context to your configured model.</p>
+        </form>
+        <div class="configuration"><div><span class="config-label">GENERATION MODEL</span><span id="model">Connecting…</span></div><div><span class="config-label">RETRIEVAL</span><span>Top 5 · cosine similarity</span></div></div>
+      </section>
+      <section class="result panel" aria-labelledby="result-title">
+        <div class="panel-heading"><div><h2 id="result-title">Generated FELN</h2></div><span id="result-badge" class="small-tag">OUTPUT</span></div>
+        <div id="result-empty" class="empty-result"><h3>Your FELN will appear here</h3><p>Your generated layers, filters, and spatial<br>relationships will appear here.</p><span class="empty-example">layers <span>·</span> where <span>·</span> relations</span></div>
+        <div id="result-content" hidden><div class="code-toolbar"><span id="result-description">FELN / JSON</span><button id="copy" class="copy-button" type="button">Copy JSON</button></div><pre id="result-code" tabindex="0" aria-label="Generated FELN"></pre><div id="result-summary" class="result-summary"></div></div>
+        <div class="result-footer"><span class="dot"></span><span id="result-footer-text">Retrieve examples, then generate FELN.</span></div>
+      </section>
+    </div>
+    <section class="examples-section" aria-labelledby="examples-title">
+      <div class="examples-heading"><div><h2 id="examples-title">Retrieved examples</h2></div><span id="example-count" class="count-pill">0 / 5 RETRIEVED</span></div>
+      <p id="examples-description" class="examples-description">The closest matches from your corpus, in the exact order sent to the model.</p>
+      <div id="examples-empty" class="examples-empty"><span aria-hidden="true">⌕</span><p>No examples retrieved.<br><small>Find examples or generate a FELN to explore the five closest matches.</small></p></div>
+      <div id="examples" class="examples-grid"></div>
+    </section>
+    <div id="status" class="status" role="status" aria-live="polite">Connecting to your workspace…</div>
+    <footer class="page-footer"><span>FELN Studio <span class="muted">/ Spatial query playground</span></span><span id="corpus-info">Loading corpus…</span></footer>
+  </main>
+  <template id="example-template"><article class="example-card"><div class="example-top"><span class="example-rank"></span><span class="similarity"></span></div><p class="example-text"></p><div class="example-layers"></div><details><summary>View example FELN <span aria-hidden="true">↗</span></summary><pre tabindex="0"></pre></details></article></template>
+</body>
+</html>

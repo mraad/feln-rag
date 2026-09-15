@@ -1,0 +1,19 @@
+.venv/
+indices/
+out/
+out_*.txt
+out_*.err
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+.resume
+.DS_Store
+
+# Generated from local sibling dependency metadata; do not publish local provenance.
+uv.lock
+.claude/
+.codex/
+.agents/

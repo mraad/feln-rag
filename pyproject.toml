@@ -1,0 +1,32 @@
+[project]
+name = "feln-rag"
+version = "0.1.0"
+description = "RAG few-shot FELN generation over Layers.json + FELN.json, with encoder comparison."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "feln",
+    "layers-json[model]",
+    "sentence-transformers>=3",
+    "numpy>=2",
+    "litellm>=1.70",
+    "python-dotenv>=1",
+    "vectorless-feln",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "pyright>=1.1"]
+
+[tool.uv.sources]
+feln = { path = "../feln", editable = true }
+layers-json = { path = "../layers-json", editable = true }
+vectorless-feln = { path = "../VectorlessGAIT", editable = true }
+
+[tool.uv]
+override-dependencies = ["layers-json[model]"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["feln_rag"]
