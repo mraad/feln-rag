@@ -27,7 +27,7 @@ that represents its meaning. We store those vectors as rows in a NumPy array, ke
 row linked to its original text and FELN. That array is the vector store.
 
 The vectors are normalized to unit length and cached on disk, so unchanged examples do not
-need to be embedded again each time Studio starts.
+need to be embedded again each time an index is loaded.
 
 ### 2. Find questions that sound like yours
 
@@ -81,7 +81,7 @@ flowchart LR
 Requires Python 3.13, `uv`, and sibling checkouts of [feln](https://github.com/mraad/feln)
 at `../feln` and [layers-json](https://github.com/mraad/layers-json) at `../layers-json`.
 The current dependency configuration also requires `../VectorlessGAIT` for the optional
-vectorless retrieval mode. Studio uses the NumPy embedding workflow described above.
+vectorless retrieval mode.
 
 ```bash
 uv sync
@@ -112,52 +112,19 @@ included or needed for retrieval and generation. No local filesystem paths are r
 
 ## FELN Studio
 
-Studio makes that flow visible. Write your question on the left, inspect the five retrieved
-examples below, and see the generated FELN on the right. Expanding an example shows the exact
-JSON that will become an assistant message. The editable system prompt shows the instructions
-and catalog that precede those pairs.
-
-**Find examples only** lets you inspect retrieval before asking the LLM to generate anything.
-**Generate FELN** sends those displayed examples, in order, followed by your question. You can
-then copy the result or revise the question and try again.
-
-The local single-page app uses plain HTML, CSS, and JavaScript, served by Python's
-standard-library HTTP server; no frontend build step is required.
-
-![FELN Studio workspace](docs/screenshots/feln-studio-workspace.jpg)
-
-### Launch and stop
+The local playground moved to [`../feln-studio`](../feln-studio): one SPA over this RAG
+pipeline, the feln-lora GGUF and the feln-liquid MLX adapter, with one strict judge. It imports
+`feln_rag.index` (`build_or_load`, `load_examples`) and `feln_rag.rag` (`system_prompt`, `generate`),
+and reads the bundled NorthSea data from this checkout:
 
 ```bash
-uv run --no-sync python -m feln_rag.web
+cd ../feln-studio && uv run --no-sync python -m feln_studio.server --backends rag
 ```
 
-Open **http://127.0.0.1:8765/**. Keep the terminal running; press **Ctrl+C** to stop the server.
-The default encoder is `local:multi-qa-mpnet-base-dot-v1`. Model weights may download on first
-use. Override the generation model with `--model`, the encoder with `--encoder`, and the
-local port with `--port`.
-
-### Workflow
-
-1. Enter a NorthSea query.
-2. Click **Find examples only** to retrieve five examples without an extractor LLM request.
-   Each card shows similarity, source text, layer names, and expandable FELN.
-3. Optionally expand **System prompt & catalog** to edit the instructions.
-4. Click **Generate FELN**. Studio uses the five displayed examples in order, retrieving them
-   first if necessary. **Copy JSON** copies the result.
-
-Changing the query clears examples and output. Editing the prompt clears only the output.
-**Restore default prompt** restores the catalog instructions. **VALID FELN** indicates schema
-validity, not correctness of the model's interpretation. Invalid output remains visible.
-
-![NorthSea retrieval with an expanded example](docs/screenshots/feln-studio-examples.jpg)
-
-These screenshots show the real NorthSea workspace and local retrieval, without a generation
-request. Generation sends the query, prompt/catalog, and examples to the configured provider
-and may incur charges. Credentials remain server-side. Studio binds to loopback, checks
-hosts/origins, and does not persist browser edits or generated output.
-
-Studio uses the full corpus under `indices/playground`. Evaluation uses a separate holdout.
+Configure `LLM_MODEL_NAME` and provider credentials in `../feln-studio/.env`. **Find examples
+only** inspects retrieval before any provider call; **Generate** sends the five displayed
+examples, in order, followed by your question. Generation may incur charges; credentials stay
+server-side. UI checks and screenshots live in that repository.
 
 ## Evaluation
 
@@ -220,8 +187,7 @@ Retrieval scored all ten queries; E2E used the first three for each configuratio
 | Completed LLM requests | 6 valid outputs, no request errors |
 
 The zero-shot miss used `intersects` where gold used `contains`. These small samples test
-operation, not general accuracy. The NorthSea UI was checked in Chrome for layout, query
-editing, retrieval, and expanded examples.
+operation, not general accuracy.
 
 A warmed local benchmark of 100 queries, median of three runs, measured **1.033 s** for
 individual embeddings versus **0.098 s** batched (**10.6× faster**). Vectors agreed within

@@ -1,10 +1,11 @@
 # Development notes
 
-This repository contains FELN RAG and the FELN Studio SPA. See `README.md` for setup and usage.
+This repository contains FELN RAG. The FELN Studio SPA lives in `../feln-studio` and imports
+this package. See `README.md` for setup and usage.
 
 ## Data and privacy
 
-- Keep only NorthSea examples, catalogs, screenshots, and measurements.
+- Keep only NorthSea examples, catalogs, and measurements.
 - Default data lives in `feln_rag/data/NorthSea`; do not introduce personal filesystem paths.
 - Bundled layer connection URIs are removed. OKF source references use relative NorthSea names.
 - Never commit credentials, local configuration, generated request payloads, or embedding caches.
@@ -19,7 +20,6 @@ This repository contains FELN RAG and the FELN Studio SPA. See `README.md` for s
 uv sync
 uv run --no-sync pytest -q
 uv run --no-sync pyright feln_rag
-uv run --no-sync python -m feln_rag.web
 uv run --no-sync python -m feln_rag.eval retrieval --encoders local:all-MiniLM-L6-v2
 uv run --no-sync python -m feln_rag.eval e2e --encoders none --holdout 10 --limit 3
 ```
@@ -36,14 +36,10 @@ Use `--no-sync` for the installed environment. E2E spends provider tokens; alway
   and FELN generation. The query is always the final message. Requests have a 120-second timeout.
 - `eval.py`: deterministic holdout splits, batched retrieval evaluation, concurrent generation,
   and explicit error rows. Zero shots skips retriever setup.
-- `web.py`: loopback-only HTTP server, strict request validation, generic provider errors, and
-  static assets. Generation preserves the five displayed example IDs in order.
-- `static/`: vanilla JavaScript, semantic HTML, and CSS. Use text nodes for model/catalog content.
-  Preserve keyboard access, loading states, query invalidation, and the editable prompt.
 
 Use `feln.FELNCompare` and `FELN.same` for scoring; do not duplicate their SQL normalization.
 Dependencies on `feln`, `layers-json`, and optional vectorless retrieval are intentional.
-Do not add a `gen-ai-toolkit` dependency. Keep the SPA free of frontend build dependencies.
+Do not add a `gen-ai-toolkit` dependency.
 
-Tests use synthetic vectors and mocked providers. The HTTP test binds a loopback socket.
+Tests use synthetic vectors and mocked providers.
 Historical quality measurements require live evaluation; unit tests do not reproduce them.
