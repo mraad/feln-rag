@@ -1,6 +1,6 @@
 [project]
 name = "feln-rag"
-version = "0.1.0"
+version = "0.2.0"
 description = "RAG few-shot FELN generation over Layers.json + FELN.json, with encoder comparison."
 requires-python = ">=3.13,<3.14"
 dependencies = [
