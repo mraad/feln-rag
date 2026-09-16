@@ -120,9 +120,10 @@ pipeline, the feln-lora GGUF and the feln-liquid MLX adapter, with one strict ju
 cd ../feln-studio && uv run --no-sync python -m feln_studio.server --backends rag
 ```
 
-**Find examples only** inspects retrieval before any provider call; **Generate FELN** sends the
-five displayed examples, in order, followed by your question. Generation may incur charges;
-credentials stay server-side.
+Configure `LLM_MODEL_NAME` and provider credentials in `../feln-studio/.env`. **Find examples
+only** inspects retrieval before any provider call; **Generate** sends the five displayed
+examples, in order, followed by your question. Generation may incur charges; credentials stay
+server-side. UI checks and screenshots live in that repository.
 
 ## Evaluation
 
@@ -185,8 +186,7 @@ Retrieval scored all ten queries; E2E used the first three for each configuratio
 | Completed LLM requests | 6 valid outputs, no request errors |
 
 The zero-shot miss used `intersects` where gold used `contains`. These small samples test
-operation, not general accuracy. The NorthSea UI was checked in Chrome for layout, query
-editing, retrieval, and expanded examples.
+operation, not general accuracy.
 
 A warmed local benchmark of 100 queries, median of three runs, measured **1.033 s** for
 individual embeddings versus **0.098 s** batched (**10.6× faster**). Vectors agreed within

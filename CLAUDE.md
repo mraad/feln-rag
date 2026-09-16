@@ -5,7 +5,7 @@ this package. See `README.md` for setup and usage.
 
 ## Data and privacy
 
-- Keep only NorthSea examples, catalogs, screenshots, and measurements.
+- Keep only NorthSea examples, catalogs, and measurements.
 - Default data lives in `feln_rag/data/NorthSea`; do not introduce personal filesystem paths.
 - Bundled layer connection URIs are removed. OKF source references use relative NorthSea names.
 - Never commit credentials, local configuration, generated request payloads, or embedding caches.
