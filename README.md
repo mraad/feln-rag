@@ -114,7 +114,8 @@ included or needed for retrieval and generation. No local filesystem paths are r
 
 The local playground moved to [`../feln-studio`](../feln-studio): one SPA over this RAG
 pipeline, the feln-lora GGUF and the feln-liquid MLX adapter, with one strict judge. It imports
-`feln_rag` (index, prompt, generation) and reads the bundled NorthSea data from this checkout:
+`feln_rag.index` (`build_or_load`, `load_examples`) and `feln_rag.rag` (`system_prompt`, `generate`),
+and reads the bundled NorthSea data from this checkout:
 
 ```bash
 cd ../feln-studio && uv run --no-sync python -m feln_studio.server --backends rag
